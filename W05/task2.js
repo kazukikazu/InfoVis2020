@@ -1,4 +1,4 @@
-function main()
+function main(number)
 {
     var width = 500;
     var height = 500;
@@ -22,14 +22,26 @@ function main()
     document.body.appendChild( renderer.domElement );
 
     var geometry = new THREE.TorusKnotGeometry( 1, 0.3, 100, 20 );
-    var material = new THREE.MeshLambertMaterial({
-    vertexColors: THREE.VertexColors,
-    vertexShader: document.getElementById('gouraud.vert').text,
-    fragmentShader: document.getElementById('gouraud.frag').text,
-    uniforms: {
-    light_position: { type: 'v3', value: light.position }
+
+    if(number == 0) {
+      var material = new THREE.ShaderMaterial({
+          vertexColors: THREE.VertexColors,
+          vertexShader: document.getElementById('phong.vert').text,
+          fragmentShader: document.getElementById('phong_lambertRef.frag').text,
+          uniforms: {
+              light_position: { type: 'v3', value: light.position }
+          }
+        });
+    } else if(number == 1) {
+        var material = new THREE.ShaderMaterial({
+            vertexColors: THREE.VertexColors,
+            vertexShader: document.getElementById('phong.vert').text,
+            fragmentShader: document.getElementById('phong_phongRef.frag').text,
+            uniforms: {
+                light_position: { type: 'v3', value: light.position }
+            }
+        });
     }
-});
 
     var torus_knot = new THREE.Mesh( geometry, material );
     scene.add( torus_knot );

@@ -84,9 +84,9 @@ function main()
        var S0 = scalars[ id[0] ];
        var S1 = scalars[ id[1] ];
        var S2 = scalars[ id[2] ];
-      S0 = Math.round((S0-0.1)*255/0.7);
-      S1 = Math.round((S1-0.1)*255/0.7);
-      S2 = Math.round((S2-0.2)*255/0.7);
+      S0 = Math.round((S0-0.1) * 255/0.7);
+      S1 = Math.round((S1-0.1) * 255/0.7);
+      S2 = Math.round((S2-0.2) * 255/0.7);
        var C0 = new THREE.Color().setHex( cmap[ S0 ][1] );
        var C1 = new THREE.Color().setHex( cmap[ S1 ][1] );
        var C2 = new THREE.Color().setHex( cmap[ S2 ][1] );
