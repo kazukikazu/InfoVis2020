@@ -22,7 +22,7 @@
 		uniform vec3 light_position;
 		uniform vec3 camera_position;
 
-		vec3 PhongReflection( vec3 C, vec3 L, vec3 N, vec3 V)
+		vec3 PhongRef( vec3 C, vec3 L, vec3 N, vec3 V)
 		{
 			float ka = 0.3;
 			float kd = 0.5;
@@ -48,7 +48,7 @@
 			vec3 L = normalize( light_position - point_position.xyz );
 			vec3 N = normalize( normal_vector );
 			vec3 V = normalize(camera_position - point_position.xyz );
-			point_color = PhongReflection( C, L, N, V );
+			point_color = PhongRef( C, L, N, V );
 			gl_Position = projectionMatrix * point_position;
 		}
 	</script>
