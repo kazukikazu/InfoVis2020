@@ -10,14 +10,14 @@
 
 X data : game name<br>
 Y data : the number of units sold in 2020
-
+(cited from : <a href="https://teitengame.com/">https://teitengame.com/</a>)
 <script>
 
 
 // set the dimensions and margins of the graph
-var margin = {top: 10, right: 30, bottom: 90, left: 40},
+var margin = {top: 30, right: 30, bottom: 80, left: 60},
     width = 460 - margin.left - margin.right,
-    height = 450 - margin.top - margin.bottom;//
+    height = 400 - margin.top - margin.bottom;//
 
 // append the svg object to the body of the page
 var svg = d3.select("#my_dataviz")
@@ -29,7 +29,7 @@ var svg = d3.select("#my_dataviz")
           "translate(" + margin.left + "," + margin.top + ")");
 
 // Parse the Data//
-  d3.csv(""https://kazukikazu.github.io/InfoVis2020/W12/data.csv, function(data) {
+  d3.csv("https://kazukikazu.github.io/InfoVis2020/W12/data2.csv", function(data) {
 
 // X axis
 var x = d3.scaleBand()
@@ -45,7 +45,7 @@ svg.append("g")
 
 // Add Y axis
 var y = d3.scaleLinear()
-  .domain([0, 60])
+  .domain([0, 5000000])
   .range([ height, 0]);
 svg.append("g")
   .call(d3.axisLeft(y));
@@ -56,18 +56,10 @@ svg.selectAll("mybar")
   .enter()
   .append("rect")
     .attr("x", function(d) { return x(d.title); })
+    .attr("y", function(d) { return y(d.sales); })
     .attr("width", x.bandwidth())
+    .attr("height", function(d) { return height - y(d.sales); })
     .attr("fill", "#69b3a2")
-    // no bar at the beginning thus:
-    .attr("height", function(d) { return height - y(0); }) // always equal to 0
-    .attr("y", function(d) { return y(0); })
-    // Animation
-    svg.selectAll("rect")
-      .transition()
-      .duration(800)
-      .attr("y", function(d) { return y(d.sales); })
-      .attr("height", function(d) { return height - y(d.sales); })
-      .delay(function(d,i){console.log(i) ; return(i*100)})
 
 })
 
