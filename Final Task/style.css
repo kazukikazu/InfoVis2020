@@ -1,0 +1,13 @@
+body {
+  display: flex;
+}
+div#display {
+  flex: 1;
+}
+div#controller {
+  width: 400px;
+  margin: 10px 20px;
+}
+div#controller > h3 {
+  margin: 10px 0px;
+}

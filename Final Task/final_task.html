@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Final Task</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+		<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	</head>
+	<body style="margin:0;">
+		<div id="display" style="width: 70%; float: left;">
+		</div>
+		<div id="controller" style="float: left;">
+			<div style="text-align:center">
+		<h3>情報可視化論：Final Task(T1)　</h3>
+		<h3>
+			氏名：松尾　和樹<br>
+			学籍番号：202X021X
+		</h3>
+	</div>
+	<div align="left">
+			<h3>Isovalue</h3>
+			サーフェスレンダリングのしきい値設定
+			<div id="ilabel" style="font-family:Arial;"></div>
+			<input type="range" min="0" max="1" step="0.01" value="0.5" id="isovalue"/><br>
+			<h3>Color</h3>
+			カラーマップの可視化．
+			<div id="clabel" style="font-family:Arial;"></div>
+			<input type="range" min="0" max="1" step="0.01" value="0.5" id="color"/><br>
+			<h3>Reflection</h3>
+			反射モデル設定．<br>
+			<input type="radio" name="reflection" id="LR" value = 0 checked> Lambertian<br>
+			<input type="radio" name="reflection" id="PR" value = 1>
+			Phong<br>
+			<h3>Shading</h3>
+			シェーディング設定．<br>
+			<input type="radio" name="shading" id="GS" value = 0 checked> Gouraud<br>
+			<input type="radio" name="shading" id="PS" value = 1>
+			Phong<br>
+			<h3>Plane</h3>
+			<input type="checkbox" name="plane" id="onPlane" value = 1>
+			平面による可視化設定<br>
+			<input type="checkbox" name="colormap" id="cmapRed" value = 1>
+			カラーマップ設定<br>
+			<div style="height: 20px"></div>
+			<button id="apply-button" style="font-family=Arial;">Apply</button>
+		</div>
+		<script src="three.min.js"></script>
+		<script src="Lut.js"></script>
+		<script src="TrackballControls.js"></script>
+		<script src="https://naohisas.github.io/KVS.js/Build/KVS.min.js"></script>
+	  <script src="https://naohisas.github.io/KVS.js/Build/KVS2THREE.min.js"></script>
+	  <script src="https://naohisas.github.io/KVS.js/Source/KVSLobsterData.js"></script>
+		<script src="Bounds.js"></script>
+		<script src="Isosurfaces.js"></script>
+
+		<script type="x-shader/x-vertex" id="gouraud_lambertian.vert">
+			varying vec3 point_color;
+			varying vec4 point_position;
+			varying vec3 normal_vector;
+			uniform vec3 light_position;
+
+			vec3 LambertianReflection( vec3 C, vec3 L, vec3 N )
+			{
+				float ka = 0.4;
+				float kd = 0.6;
+
+				float dd = max( dot( N, L ), 0.0 );
+				float Ia = ka;
+				float Id = kd * dd;
+				return C * ( Ia + Id );
+			}
+
+			void main()
+			{
+				point_position = modelViewMatrix * vec4( position, 1.0 );
+				normal_vector = normalMatrix * normal;
+
+				vec3 C = color;
+				vec3 L = normalize( light_position - point_position.xyz );
+				vec3 N = normalize( normal_vector );
+				point_color = LambertianReflection( C, L, N );
+				gl_Position = projectionMatrix * point_position;
+			 }
+
+		</script>
+
+		<script type="x-shader/x-vertex" id="gouraud_phong.vert">
+			varying vec3 point_color;
+			varying vec4 point_position;
+			varying vec3 normal_vector;
+			uniform vec3 light_position;
+			uniform vec3 camera_position;
+
+			vec3 PhongReflection( vec3 C, vec3 L, vec3 N )
+			{
+				float ka = 0.3;
+				float kd = 0.5;
+				float ks = 0.8;
+				float n = 50.0;
+
+				vec3 V = normalize( camera_position - point_position.xyz );
+				vec3 R = reflect( -L, N );
+
+				float dd = max( dot( N, L ), 0.0 );
+				float ds = pow( max( dot( R, V ), 0.0 ), n );
+				if(dd<=0.0)  { ds = 0.0; }
+				float Ia = ka;
+				float Id = kd * dd;
+				float Is = ks * ds;
+				return C * ( Ia + Id + Is );
+			}
+
+			void main()
+			{
+				point_position = modelViewMatrix * vec4( position, 1.0 );
+				normal_vector = normalMatrix * normal;
+
+				vec3 C = color;
+				vec3 L = normalize( light_position - point_position.xyz );
+				vec3 N = normalize( normal_vector );
+				point_color = PhongReflection( C, L, N );
+				gl_Position = projectionMatrix * point_position;
+			}
+
+		</script>
+
+
+		<script type="x-shader/x-fragment" id="gouraud.frag">
+			varying vec3 point_color;
+			void main()
+			{
+				gl_FragColor = vec4( point_color, 1.0 );
+			}
+		</script>
+
+		<script type="x-shader/x-vertex" id="phong.vert">
+			varying vec3 point_color;
+			varying vec4 point_position;
+			varying vec3 normal_vector;
+			uniform vec3 light_position;
+
+			void main()
+			{
+				point_color = color;
+				point_position = modelViewMatrix * vec4( position, 1.0 );
+				normal_vector = normalMatrix * normal;
+				gl_Position = projectionMatrix * point_position;
+			}
+		</script>
+
+
+		<script type="x-shader/x-fragment" id="phong_lambertian.frag">
+			varying vec3 point_color;
+			varying vec4 point_position;
+			varying vec3 normal_vector;
+			uniform vec3 light_position;
+
+			vec3 LambertianReflection( vec3 C, vec3 L, vec3 N )
+			{
+				float ka = 0.4;
+				float kd = 0.6;
+
+				float dd = max( dot( N, L ), 0.0 );
+				float Ia = ka;
+				float Id = kd * dd;
+				return C * ( Ia + Id );
+			}
+
+			void main()
+			{
+				vec3 C = point_color;
+				vec3 L = normalize( light_position - point_position.xyz );
+				vec3 N = normalize( normal_vector );
+
+				vec3 shaded_color = LambertianReflection( C, L, N );
+				gl_FragColor = vec4( shaded_color, 1.0 );
+			}
+		</script>
+
+		<script type="x-shader/x-fragment" id="phong_phong.frag">
+			varying vec3 point_color;
+			varying vec4 point_position;
+			varying vec3 normal_vector;
+			uniform vec3 light_position;
+			uniform vec3 camera_position;
+
+			vec3 PhongReflection( vec3 C, vec3 L, vec3 N )
+			{
+				float ka = 0.3;
+				float kd = 0.5;
+				float ks = 0.8;
+				float n = 50.0;
+
+				vec3 V = normalize( camera_position - point_position.xyz );
+				vec3 R = reflect( -L, N );
+
+				float dd = max( dot( N, L ), 0.0 );
+				float ds = pow( max( dot( R, V ), 0.0 ), n );
+				if(dd<=0.0)  { ds = 0.0; }
+				float Ia = ka;
+				float Id = kd * dd;
+				float Is = ks * ds;
+				return C * ( Ia + Id + Is );
+			}
+
+			void main()
+			{
+				vec3 C = point_color;
+				vec3 L = normalize( light_position - point_position.xyz );
+				vec3 N = normalize( normal_vector );
+
+				vec3 shaded_color = PhongReflection( C, L, N );
+				gl_FragColor = vec4( shaded_color, 1.0 );
+			}
+		</script>
+
+
+		<script src="main.js"></script>
+		<script>
+			main();
+		</script>
+	</body>
+</html>
